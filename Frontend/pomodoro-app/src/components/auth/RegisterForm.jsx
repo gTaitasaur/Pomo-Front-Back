@@ -173,7 +173,7 @@ const RegisterForm = ({ onClose, onBackToLogin }) => {
         {/* Campo Teléfono */}
         <div>
           <label htmlFor="telefono" className="block text-sm font-medium text-gray-700 mb-1">
-            Teléfono <span className="text-gray-400">(opcional)</span>
+            Teléfono <span className="text-gray-400"></span>
           </label>
           <input
             type="tel"

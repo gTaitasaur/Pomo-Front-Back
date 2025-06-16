@@ -108,62 +108,73 @@ class UserController {
   // Cambiar contraseña
   static async changePassword(req, res) {
     try {
-      const userId = req.user.user_id;
+      const userId = req.user.user_id; // Usa solo el ID del token
       const { current_password, new_password } = req.body;
-
-      // Obtener usuario con password_hash
-      const user = await UserModel.findById(userId);
-
-      if (!user) {
+  
+      // Validar campos requeridos
+      if (!current_password || !new_password) {
+        return res.status(400).json({
+          success: false,
+          error: {
+            message: 'Todos los campos son obligatorios',
+            code: 'MISSING_FIELDS'
+          }
+        });
+      }
+  
+      // Obtener usuario CON el password_hash
+      const user = await UserModel.findByIdWithPassword(userId); // ¡Nuevo método!
+  
+      if (!user || !user.password_hash) {
         return res.status(404).json({
           success: false,
           error: {
-            message: 'Usuario no encontrado',
+            message: 'Usuario no encontrado o sin contraseña registrada',
             code: 'USER_NOT_FOUND'
           }
         });
       }
 
-      // Verificar contraseña actual
-      const isValidPassword = await verifyPassword(current_password, user.password_hash);
+    // Verificar contraseña actual
+    const isValidPassword = await verifyPassword(current_password, user.password_hash);
 
-      if (!isValidPassword) {
-        return res.status(400).json({
-          success: false,
-          error: {
-            message: 'La contraseña actual es incorrecta',
-            code: 'INVALID_PASSWORD'
-          }
-        });
-      }
-
-      // Hash de la nueva contraseña
-      const newPasswordHash = await hashPassword(new_password);
-
-      // Actualizar contraseña
-      await query(
-        'UPDATE usuarios SET password_hash = $1, updated_at = CURRENT_TIMESTAMP WHERE user_id = $2',
-        [newPasswordHash, userId]
-      );
-
-      res.json({
-        success: true,
-        data: {
-          message: 'Contraseña actualizada exitosamente'
-        }
-      });
-
-    } catch (error) {
-      console.error('Error al cambiar contraseña:', error);
-      res.status(500).json({
+    if (!isValidPassword) {
+      return res.status(400).json({
         success: false,
         error: {
-          message: 'Error al cambiar contraseña',
-          code: 'PASSWORD_CHANGE_ERROR'
+          message: 'La contraseña actual es incorrecta',
+          code: 'INVALID_PASSWORD'
         }
       });
     }
+
+    // Hash de la nueva contraseña
+    const newPasswordHash = await hashPassword(new_password);
+
+    // Actualizar contraseña
+    await query(
+      'UPDATE usuarios SET password_hash = $1, updated_at = CURRENT_TIMESTAMP WHERE user_id = $2',
+      [newPasswordHash, userId]
+    );
+
+    res.json({
+      success: true,
+      data: {
+        message: 'Contraseña actualizada exitosamente'
+      }
+    });
+
+  } catch (error) {
+    console.error('Error al cambiar contraseña:', error);
+    res.status(500).json({
+      success: false,
+      error: {
+        message: 'Error al cambiar contraseña',
+        code: 'PASSWORD_CHANGE_ERROR'
+      }
+    });
   }
+}
 
   // Obtener balance del usuario
   static async getBalance(req, res) {

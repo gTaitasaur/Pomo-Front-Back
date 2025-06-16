@@ -81,7 +81,7 @@ class AuthService {
     }
   }
 
-  // Registro - CON LOGS PARA DEBUG
+  // Registro - CORREGIDO: enviar null si teléfono está vacío
   static async register(userData) {
     console.log('🚀 Iniciando registro con datos:', userData);
     
@@ -90,7 +90,8 @@ class AuthService {
         username: userData.username,
         email: userData.email,
         password: userData.password,
-        telefono: userData.telefono || null
+        // FIX #1: Enviar null si el teléfono está vacío
+        telefono: userData.telefono && userData.telefono.trim() !== '' ? userData.telefono : null
       });
 
       console.log('✅ Registro exitoso:', response.data);
@@ -185,7 +186,7 @@ class AuthService {
     }
   }
 
-  // Cambiar contraseña (lo implementaremos en el backend después)
+  // Cambiar contraseña - FIX #3: Usar la ruta correcta
   static async changePassword(userId, currentPassword, newPassword) {
     try {
       const response = await api.post(`/users/${userId}/change-password`, {

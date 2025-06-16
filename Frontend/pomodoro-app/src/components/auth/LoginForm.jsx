@@ -1,3 +1,4 @@
+// src/components/auth/LoginForm.jsx
 import { useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import toast from 'react-hot-toast';
@@ -27,25 +28,40 @@ const LoginForm = ({ onClose, onSwitchToRegister }) => {
     }
 
     setLoading(true);
-    const result = await login(formData.username, formData.password);
     
-    if (result.success) {
-      toast.success('¡Inicio de sesión exitoso!');
-      onClose();
-    } else {
-      toast.error(result.error || 'Error al iniciar sesión');
+    try {
+      const result = await login(formData.username, formData.password);
+      
+      if (result.success) {
+        toast.success('¡Inicio de sesión exitoso!');
+        onClose();
+      } else {
+        // FIX #2: Manejo mejorado de errores
+        const errorMessage = result.error?.message || 'Error al iniciar sesión';
+        toast.error(errorMessage);
+        
+        // NO cerrar el modal cuando hay error
+        // Solo resetear el campo de contraseña por seguridad
+        setFormData(prev => ({
+          ...prev,
+          password: ''
+        }));
+      }
+    } catch (error) {
+      console.error('Error inesperado en login:', error);
+      toast.error('Error inesperado. Por favor, intenta de nuevo.');
+    } finally {
+      setLoading(false);
     }
-    
-    setLoading(false);
   };
 
-// Para desarrollo: función para auto-completar con usuario demo
-const fillDemoUser = () => {
-  setFormData({
-    username: 'usuario_demo',
-    password: 'demo123'
-  });
-};
+  // Para desarrollo: función para auto-completar con usuario demo
+  const fillDemoUser = () => {
+    setFormData({
+      username: 'usuario_demo',
+      password: 'demo123'
+    });
+  };
 
   return (
     <div className="p-6 w-96">
@@ -84,6 +100,7 @@ const fillDemoUser = () => {
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             placeholder="usuario_demo o demo@ejemplo.com"
             disabled={loading}
+            autoComplete="username"
           />
         </div>
 
@@ -100,6 +117,7 @@ const fillDemoUser = () => {
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             placeholder="Ingresa tu contraseña"
             disabled={loading}
+            autoComplete="current-password"
           />
         </div>
 

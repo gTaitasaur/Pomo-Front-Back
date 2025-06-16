@@ -26,6 +26,15 @@ class UserModel {
     return result.rows[0];
   }
 
+  // En user.model.js
+  static async findByIdWithPassword(userId) {
+    const result = await query(
+      'SELECT user_id, username, email, password_hash, telefono, imagen_perfil FROM usuarios WHERE user_id = $1', 
+      [userId]
+    );
+    return result.rows[0];
+  }
+
   // Buscar usuario por username
   static async findByUsername(username) {
     const sql = `
