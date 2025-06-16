@@ -42,10 +42,14 @@ const registerValidation = [
     .withMessage('La contraseña debe tener al menos 6 caracteres'),
   
   body('telefono')
-    .optional()
+    .optional({ nullable: true, checkFalsy: true })
     .trim()
-    .matches(/^[+]?[(]?[0-9]{1,4}[)]?[-\s\.]?[(]?[0-9]{1,4}[)]?[-\s\.]?[0-9]{1,5}[-\s\.]?[0-9]{1,5}$/)
-    .withMessage('Número de teléfono inválido')
+    .custom((value) => {
+      if (value && !/^[+]?[(]?[0-9]{1,4}[)]?[-\s\.]?[(]?[0-9]{1,4}[)]?[-\s\.]?[0-9]{1,5}[-\s\.]?[0-9]{1,5}$/.test(value)) {
+        throw new Error('Número de teléfono inválido');
+      }
+      return true;
+    })
 ];
 
 // Validaciones para login
