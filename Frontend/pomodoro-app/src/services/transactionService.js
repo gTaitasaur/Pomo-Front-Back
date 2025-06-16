@@ -1,44 +1,26 @@
-// Servicio simulado para manejar transacciones de monedas
-import { MockDatabase } from '../database/pomodoro_db_mock.js';
+// src/services/transactionService.js
+import { api } from './authService';
 
 class TransactionService {
-  // Crea transacción de Freemodoros ganados por Pomodoro
+  // Crear transacción de Freemodoros ganados por Pomodoro
   static async createPomodoroTransaction(userId, amount, pomodoroMinutes) {
     try {
-      await new Promise(resolve => setTimeout(resolve, 200));
-  
-      // Crear transacción
-      const transaction = await MockDatabase.createTransaction({
+      const response = await api.post('/transactions/pomodoro', {
         user_id: userId,
-        transaction_type: 'earn_free_coins',
-        coin_type: 'free',
         amount_free_coins: amount,
-        amount_paid_coins: 0,
-        description: `Pomodoro de ${pomodoroMinutes} minutos completado`,
-        related_type: 'pomodoro_completion',
-        related_id: Date.now() // Simulamos un ID único
+        pomodoro_minutes: pomodoroMinutes
       });
-  
-      await MockDatabase.updateUserCoins(userId, amount, 0);
-  
-      // Obtener usuario ACTUALIZADO después de la transacción
-      const updatedUser = await MockDatabase.getUserById(userId);
-      
-      return {
-        success: true,
-        data: {
-          transaction,
-          newBalance: {
-            free_coins: updatedUser.free_coins,
-            paid_coins: updatedUser.paid_coins
-          }
-        }
-      };
+
+      return response.data;
     } catch (error) {
+      if (error.success === false) {
+        return error;
+      }
+      
       return {
         success: false,
         error: {
-          message: error.message,
+          message: 'Error al crear transacción',
           code: 'TRANSACTION_ERROR'
         }
       };
@@ -48,24 +30,20 @@ class TransactionService {
   // Obtener historial de transacciones del usuario
   static async getUserTransactions(userId, limit = 50) {
     try {
-      await new Promise(resolve => setTimeout(resolve, 200));
-      
-      const transactions = await MockDatabase.getTransactionsByUser(userId);
-      
-      // Ordenar por fecha descendente y limitar
-      const sortedTransactions = transactions
-        .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
-        .slice(0, limit);
+      const response = await api.get(`/transactions/user/${userId}`, {
+        params: { limit }
+      });
 
-      return {
-        success: true,
-        data: sortedTransactions
-      };
+      return response.data;
     } catch (error) {
+      if (error.success === false) {
+        return error;
+      }
+      
       return {
         success: false,
         error: {
-          message: error.message,
+          message: 'Error al obtener transacciones',
           code: 'FETCH_ERROR'
         }
       };
@@ -75,28 +53,18 @@ class TransactionService {
   // Obtener balance actual del usuario
   static async getUserBalance(userId) {
     try {
-      await new Promise(resolve => setTimeout(resolve, 100));
-      
-      const user = await MockDatabase.getUserById(userId);
-      
-      if (!user) {
-        throw new Error('Usuario no encontrado');
-      }
+      const response = await api.get(`/users/${userId}/balance`);
 
-      return {
-        success: true,
-        data: {
-          free_coins: user.free_coins,
-          paid_coins: user.paid_coins,
-          is_premium: user.is_premium,
-          premium_expiration: user.premium_expiration
-        }
-      };
+      return response.data;
     } catch (error) {
+      if (error.success === false) {
+        return error;
+      }
+      
       return {
         success: false,
         error: {
-          message: error.message,
+          message: 'Error al obtener balance',
           code: 'BALANCE_ERROR'
         }
       };
@@ -106,54 +74,93 @@ class TransactionService {
   // Obtener estadísticas de Pomodoros del usuario
   static async getPomodoroStats(userId) {
     try {
-      await new Promise(resolve => setTimeout(resolve, 200));
-      
-      const transactions = await MockDatabase.getTransactionsByUser(userId);
-      
-      // Filtrar solo transacciones de Pomodoros
-      const pomodoroTransactions = transactions.filter(t => 
-        t.related_type === 'pomodoro_completion'
-      );
+      const response = await api.get(`/users/${userId}/pomodoro-stats`);
 
-      // Calcular estadísticas
-      const totalPomodoros = pomodoroTransactions.length;
-      const totalFreemodoros = pomodoroTransactions.reduce((sum, t) => 
-        sum + t.amount_free_coins, 0
-      );
-      
-      // Estadísticas por día (últimos 7 días)
-      const today = new Date();
-      const last7Days = {};
-      
-      for (let i = 0; i < 7; i++) {
-        const date = new Date(today);
-        date.setDate(today.getDate() - i);
-        const dateKey = date.toISOString().split('T')[0];
-        last7Days[dateKey] = 0;
-      }
-
-      pomodoroTransactions.forEach(t => {
-        const dateKey = new Date(t.created_at).toISOString().split('T')[0];
-        if (last7Days.hasOwnProperty(dateKey)) {
-          last7Days[dateKey]++;
-        }
-      });
-
-      return {
-        success: true,
-        data: {
-          totalPomodoros,
-          totalFreemodoros,
-          dailyStats: last7Days,
-          avgPomodorosPerDay: totalPomodoros / 7
-        }
-      };
+      return response.data;
     } catch (error) {
+      if (error.success === false) {
+        return error;
+      }
+      
       return {
         success: false,
         error: {
-          message: error.message,
+          message: 'Error al obtener estadísticas',
           code: 'STATS_ERROR'
+        }
+      };
+    }
+  }
+
+  // Comprar monedas (para implementar después)
+  static async purchaseCoins(userId, packageId, paymentData) {
+    try {
+      const response = await api.post('/transactions/purchase-coins', {
+        user_id: userId,
+        package_id: packageId,
+        payment_data: paymentData
+      });
+
+      return response.data;
+    } catch (error) {
+      if (error.success === false) {
+        return error;
+      }
+      
+      return {
+        success: false,
+        error: {
+          message: 'Error al procesar compra',
+          code: 'PURCHASE_ERROR'
+        }
+      };
+    }
+  }
+
+  // Comprar premium (para implementar después)
+  static async purchasePremium(userId, packageId, useCoins = true) {
+    try {
+      const response = await api.post('/transactions/purchase-premium', {
+        user_id: userId,
+        package_id: packageId,
+        use_coins: useCoins
+      });
+
+      return response.data;
+    } catch (error) {
+      if (error.success === false) {
+        return error;
+      }
+      
+      return {
+        success: false,
+        error: {
+          message: 'Error al comprar premium',
+          code: 'PREMIUM_ERROR'
+        }
+      };
+    }
+  }
+
+  // Desbloquear feature (para implementar después)
+  static async unlockFeature(userId, featureId) {
+    try {
+      const response = await api.post('/transactions/unlock-feature', {
+        user_id: userId,
+        feature_id: featureId
+      });
+
+      return response.data;
+    } catch (error) {
+      if (error.success === false) {
+        return error;
+      }
+      
+      return {
+        success: false,
+        error: {
+          message: 'Error al desbloquear característica',
+          code: 'UNLOCK_ERROR'
         }
       };
     }

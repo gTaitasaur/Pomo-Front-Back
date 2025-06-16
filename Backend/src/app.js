@@ -48,17 +48,17 @@ app.get('/health', async (req, res) => {
 
 // Importar rutas
 const authRoutes = require('./routes/auth.routes');
-// const userRoutes = require('./routes/user.routes');
+const userRoutes = require('./routes/user.routes');
+const transactionRoutes = require('./routes/transaction.routes');
 // const pomodoroRoutes = require('./routes/pomodoro.routes');
 // const featureRoutes = require('./routes/feature.routes');
-// const transactionRoutes = require('./routes/transaction.routes');
 
 // Usar las rutas
 app.use('/api/auth', authRoutes);
-// app.use('/api/users', userRoutes);
+app.use('/api/users', userRoutes);
+app.use('/api/transactions', transactionRoutes);
 // app.use('/api/pomodoros', pomodoroRoutes);
 // app.use('/api/features', featureRoutes);
-// app.use('/api/transactions', transactionRoutes);
 
 // Manejo de rutas no encontradas
 app.use((req, res) => {
