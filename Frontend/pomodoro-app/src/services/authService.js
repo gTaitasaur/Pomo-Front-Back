@@ -180,7 +180,7 @@ class AuthService {
     }
   }
 
-  // Cambiar contraseña (lo implementaremos en el backend después)
+  // Cambiar contraseña
   static async changePassword(userId, currentPassword, newPassword) {
     try {
       const response = await api.post(`/users/${userId}/change-password`, {
@@ -195,11 +195,13 @@ class AuthService {
         return error;
       }
       
+      // Error inesperado
       return {
         success: false,
         error: {
-          message: 'Error al cambiar contraseña',
-          code: 'PASSWORD_CHANGE_ERROR'
+          message: error.response?.data?.error?.message || 'Error al cambiar contraseña',
+          code: 'PASSWORD_CHANGE_ERROR',
+          details: error.response?.data?.error?.details
         }
       };
     }

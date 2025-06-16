@@ -71,7 +71,8 @@ const Profile = () => {
         toast.error(result.error.message || 'Error al cambiar la contraseña');
       }
     } catch (error) {
-      toast.error('Error al cambiar la contraseña');
+      console.error('Error al cambiar contraseña:', error);
+      toast.error(error.response?.data?.error?.message || 'Error al cambiar la contraseña');
     } finally {
       setLoading(false);
     }

@@ -8,7 +8,7 @@ class UserModel {
       SELECT user_id, username, email, telefono, imagen_perfil, 
              provider, provider_id, created_at, updated_at,
              premium, premium_expiration, free_coins, paid_coins,
-             lifetime_session, last_login, is_active
+             lifetime_session, last_login, is_active, password_hash
       FROM usuarios 
       WHERE user_id = $1 AND is_active = true
     `;
@@ -170,6 +170,29 @@ class UserModel {
     const sql = 'SELECT 1 FROM usuarios WHERE LOWER(username) = LOWER($1)';
     const result = await query(sql, [username]);
     return result.rows.length > 0;
+  }
+
+  // Actualizar contraseña
+  static async updatePassword(userId, passwordHash) {
+    try {
+      const sql = `
+        UPDATE usuarios 
+        SET password_hash = $1,
+            updated_at = CURRENT_TIMESTAMP
+        WHERE user_id = $2
+        RETURNING user_id
+      `;
+      const result = await query(sql, [passwordHash, userId]);
+      
+      if (!result.rows[0]) {
+        throw new Error('No se pudo actualizar la contraseña');
+      }
+      
+      return result.rows[0];
+    } catch (error) {
+      console.error('Error en updatePassword:', error);
+      throw error;
+    }
   }
 }
 
