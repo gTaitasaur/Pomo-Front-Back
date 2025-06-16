@@ -1,305 +1,211 @@
-import { MockDatabase } from '../database/pomodoro_db_mock.js';
+// src/services/authService.js
+import axios from 'axios';
 
-// Simular bcrypt para hash de contraseñas
-const hashPassword = (password) => {
-  // En producción usarías bcrypt
-  return `$2b$10$${btoa(password)}`;
-};
+// Configuración base de axios
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
 
-const verifyPassword = (password, hash) => {
-  // En producción usarías bcrypt.compare
-  try {
-    const base64Part = hash.replace('$2b$10$', '');
-    return atob(base64Part) === password;
-  } catch {
-    return false;
+// Crear instancia de axios con configuración base
+const api = axios.create({
+  baseURL: API_URL,
+  headers: {
+    'Content-Type': 'application/json'
   }
-};
+});
 
-// Generar token JWT simulado
-const generateToken = (userId) => {
-  const header = btoa(JSON.stringify({ alg: 'HS256', typ: 'JWT' }));
-  const payload = btoa(JSON.stringify({ 
-    userId, 
-    iat: Date.now(),
-    exp: Date.now() + (24 * 60 * 60 * 1000) // 24 horas
-  }));
-  const signature = btoa('fake-signature');
-  return `${header}.${payload}.${signature}`;
-};
-
-// Decodificar token JWT simulado
-const decodeToken = (token) => {
-  try {
-    const [, payload] = token.split('.');
-    return JSON.parse(atob(payload));
-  } catch {
-    return null;
+// Interceptor para incluir el token en cada petición
+api.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('access_token');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
   }
-};
+);
+
+// Interceptor para manejar errores de respuesta
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    // Si el backend no responde o hay error de red
+    if (!error.response) {
+      return Promise.reject({
+        success: false,
+        error: {
+          message: 'Error de conexión con el servidor',
+          code: 'NETWORK_ERROR'
+        }
+      });
+    }
+    
+    // Si el backend responde con error
+    const errorData = error.response.data || {};
+    return Promise.reject({
+      success: false,
+      error: {
+        message: errorData.error?.message || 'Error desconocido',
+        code: errorData.error?.code || 'UNKNOWN_ERROR',
+        details: errorData.error?.details
+      }
+    });
+  }
+);
 
 class AuthService {
-  // Login con validación real de contraseña
+  // Login
   static async login(username, password) {
     try {
-      await new Promise(resolve => setTimeout(resolve, 500));
-
-      // Buscar usuario por username o email
-      const users = await MockDatabase.getUsers();
-      const user = users.find(u => 
-        (u.username === username || u.email === username) && 
-        u.is_active
-      );
-
-      if (!user) {
-        throw new Error('Usuario o contraseña incorrectos');
-      }
-
-      // Verifica contraseña
-      const isValidPassword = verifyPassword(password, user.password_hash);
-      if (!isValidPassword) {
-        throw new Error('Usuario o contraseña incorrectos');
-      }
-
-      // Actualiza último login
-      await MockDatabase.updateUser(user.user_id, {
-        last_login: new Date()
+      const response = await api.post('/auth/login', {
+        username,
+        password
       });
 
-      // Crea token de sesión
-      const token = generateToken(user.user_id);
-      
-      // Crea refresh token
-      const refreshToken = `refresh_${Date.now()}_${user.user_id}`;
-      await MockDatabase.createRefreshToken({
-        token: refreshToken,
-        user_id: user.user_id,
-        expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 días
-        user_agent: navigator.userAgent,
-        ip_address: '127.0.0.1' // En producción obtendrías la IP real
-      });
-
-      // Retornar respuesta similar a un backend real
-      const { password_hash, ...userWithoutPassword } = user;
-      return {
-        success: true,
-        data: {
-          user: userWithoutPassword,
-          access_token: token,
-          refresh_token: refreshToken,
-          token_type: 'Bearer',
-          expires_in: 86400 // 24 horas en segundos
-        }
-      };
+      return response.data;
     } catch (error) {
+      // Si es un error ya formateado por el interceptor
+      if (error.success === false) {
+        return error;
+      }
+      
+      // Error inesperado
       return {
         success: false,
         error: {
-          message: error.message,
-          code: 'AUTH_ERROR'
+          message: 'Error al iniciar sesión',
+          code: 'LOGIN_ERROR'
         }
       };
     }
   }
 
-  // Registro con hash de contraseña
+  // Registro
   static async register(userData) {
     try {
-      await new Promise(resolve => setTimeout(resolve, 500));
-
-      // Validaciones del lado del servidor
-      if (!userData.username || userData.username.length < 3) {
-        throw new Error('El nombre de usuario debe tener al menos 3 caracteres');
-      }
-
-      if (!userData.email || !/\S+@\S+\.\S+/.test(userData.email)) {
-        throw new Error('Email inválido');
-      }
-
-      if (!userData.password || userData.password.length < 6) {
-        throw new Error('La contraseña debe tener al menos 6 caracteres');
-      }
-
-      // Verificar si el email ya existe
-      const existingUser = await MockDatabase.getUserByEmail(userData.email);
-      if (existingUser) {
-        throw new Error('El email ya está registrado');
-      }
-
-      // Verificar si el username ya existe
-      const users = await MockDatabase.getUsers();
-      const usernameExists = users.some(u => 
-        u.username.toLowerCase() === userData.username.toLowerCase()
-      );
-      if (usernameExists) {
-        throw new Error('El nombre de usuario ya está en uso');
-      }
-
-      // Crear nuevo usuario con contraseña hasheada
-      const newUser = await MockDatabase.createUser({
+      const response = await api.post('/auth/register', {
         username: userData.username,
-        email: userData.email.toLowerCase(),
-        password_hash: hashPassword(userData.password),
-        telefono: userData.telefono || null,
-        provider: 'email',
-        imagen_perfil: `https://ui-avatars.com/api/?name=${userData.username}&background=random`
+        email: userData.email,
+        password: userData.password,
+        telefono: userData.telefono || null
       });
 
-      // Crear transacción de bienvenida (bonus de monedas)
-      await MockDatabase.createTransaction({
-        user_id: newUser.user_id,
-        transaction_type: 'earn_free_coins',
-        coin_type: 'free',
-        amount_free_coins: 50,
-        description: 'Bonus de bienvenida por registro',
-        related_type: null
-      });
-
-      // Actualizar monedas del usuario
-      await MockDatabase.updateUserCoins(newUser.user_id, 50, 0);
-
-      const { password_hash, ...userWithoutPassword } = newUser;
-      return {
-        success: true,
-        data: {
-          user: userWithoutPassword,
-          message: 'Usuario registrado exitosamente. ¡Has recibido 50 monedas de bienvenida!'
-        }
-      };
+      return response.data;
     } catch (error) {
+      // Si es un error ya formateado por el interceptor
+      if (error.success === false) {
+        return error;
+      }
+      
+      // Error inesperado
       return {
         success: false,
         error: {
-          message: error.message,
+          message: 'Error al registrar usuario',
           code: 'REGISTER_ERROR'
         }
       };
     }
   }
 
-  // Cambiar contraseña
-  static async changePassword(userId, currentPassword, newPassword) {
-    try {
-      await new Promise(resolve => setTimeout(resolve, 500));
-
-      // Buscar usuario
-      const user = await MockDatabase.getUserById(userId);
-      if (!user) {
-        throw new Error('Usuario no encontrado');
-      }
-
-      // Verificar contraseña actual
-      const isValidPassword = verifyPassword(currentPassword, user.password_hash);
-      if (!isValidPassword) {
-        throw new Error('La contraseña actual es incorrecta');
-      }
-
-      // Actualizar contraseña
-      const newPasswordHash = hashPassword(newPassword);
-      await MockDatabase.updateUser(userId, {
-        password_hash: newPasswordHash,
-        updated_at: new Date()
-      });
-
-      return {
-        success: true,
-        data: {
-          message: 'Contraseña actualizada exitosamente'
-        }
-      };
-    } catch (error) {
-      return {
-        success: false,
-        error: {
-          message: error.message,
-          code: 'PASSWORD_CHANGE_ERROR'
-        }
-      };
-    }
-  }
-
-  // Verificar token y obtener usuario actual
+  // Verificar token
   static async verifyToken(token) {
     try {
-      const decoded = decodeToken(token);
-      if (!decoded || decoded.exp < Date.now()) {
-        throw new Error('Token expirado');
-      }
-
-      const user = await MockDatabase.getUserById(decoded.userId);
-      if (!user || !user.is_active) {
-        throw new Error('Usuario no válido');
-      }
-
-      const { password_hash, ...userWithoutPassword } = user;
-      return {
-        success: true,
-        data: {
-          user: userWithoutPassword
+      const response = await api.get('/auth/verify', {
+        headers: {
+          Authorization: `Bearer ${token}`
         }
-      };
+      });
+
+      return response.data;
     } catch (error) {
+      // Si es un error ya formateado por el interceptor
+      if (error.success === false) {
+        return error;
+      }
+      
+      // Error inesperado
       return {
         success: false,
         error: {
-          message: error.message,
+          message: 'Token inválido',
           code: 'TOKEN_ERROR'
         }
       };
     }
   }
 
-  // Logout (revocar tokens)
-  static async logout(refreshToken) {
+  // Refresh token
+  static async refreshToken(refreshToken) {
     try {
-      if (refreshToken) {
-        await MockDatabase.revokeRefreshToken(refreshToken);
-      }
-      return {
-        success: true,
-        data: {
-          message: 'Sesión cerrada exitosamente'
-        }
-      };
+      const response = await api.post('/auth/refresh', {
+        refresh_token: refreshToken
+      });
+
+      return response.data;
     } catch (error) {
+      // Si es un error ya formateado por el interceptor
+      if (error.success === false) {
+        return error;
+      }
+      
+      // Error inesperado
       return {
         success: false,
         error: {
-          message: error.message,
-          code: 'LOGOUT_ERROR'
+          message: 'Error al refrescar token',
+          code: 'REFRESH_ERROR'
         }
       };
     }
   }
 
-  // Refrescar token
-  static async refreshToken(refreshToken) {
+  // Logout
+  static async logout(refreshToken) {
     try {
-      const tokenData = await MockDatabase.getRefreshToken(refreshToken);
-      if (!tokenData) {
-        throw new Error('Refresh token inválido');
-      }
+      const response = await api.post('/auth/logout', {
+        refresh_token: refreshToken
+      });
 
-      const newAccessToken = generateToken(tokenData.user_id);
-      
+      return response.data;
+    } catch (error) {
+      // No es crítico si falla el logout
       return {
         success: true,
         data: {
-          access_token: newAccessToken,
-          token_type: 'Bearer',
-          expires_in: 86400
+          message: 'Sesión cerrada'
         }
       };
+    }
+  }
+
+  // Cambiar contraseña (lo implementaremos en el backend después)
+  static async changePassword(userId, currentPassword, newPassword) {
+    try {
+      const response = await api.post(`/users/${userId}/change-password`, {
+        current_password: currentPassword,
+        new_password: newPassword
+      });
+
+      return response.data;
     } catch (error) {
+      // Si es un error ya formateado por el interceptor
+      if (error.success === false) {
+        return error;
+      }
+      
       return {
         success: false,
         error: {
-          message: error.message,
-          code: 'REFRESH_ERROR'
+          message: 'Error al cambiar contraseña',
+          code: 'PASSWORD_CHANGE_ERROR'
         }
       };
     }
   }
 }
 
+// Exportar también la instancia de axios configurada para otros servicios
+export { api };
 export default AuthService;

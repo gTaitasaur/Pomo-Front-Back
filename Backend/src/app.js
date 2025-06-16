@@ -46,15 +46,15 @@ app.get('/health', async (req, res) => {
   });
 });
 
-// Aquí importaremos las rutas cuando las creemos
-// const authRoutes = require('./routes/auth.routes');
+// Importar rutas
+const authRoutes = require('./routes/auth.routes');
 // const userRoutes = require('./routes/user.routes');
 // const pomodoroRoutes = require('./routes/pomodoro.routes');
 // const featureRoutes = require('./routes/feature.routes');
 // const transactionRoutes = require('./routes/transaction.routes');
 
-// Usar las rutas (por ahora comentadas)
-// app.use('/api/auth', authRoutes);
+// Usar las rutas
+app.use('/api/auth', authRoutes);
 // app.use('/api/users', userRoutes);
 // app.use('/api/pomodoros', pomodoroRoutes);
 // app.use('/api/features', featureRoutes);
