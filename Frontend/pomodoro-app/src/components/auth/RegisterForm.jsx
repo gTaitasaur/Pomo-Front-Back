@@ -1,3 +1,4 @@
+// src/components/auth/RegisterForm.jsx
 import { useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import toast from 'react-hot-toast';
@@ -34,6 +35,10 @@ const RegisterForm = ({ onClose, onBackToLogin }) => {
 
     if (!formData.username.trim()) {
       newErrors.username = 'El nombre de usuario es obligatorio';
+    } else if (formData.username.length < 3) {
+      newErrors.username = 'El nombre de usuario debe tener al menos 3 caracteres';
+    } else if (!/^[a-zA-Z0-9_]+$/.test(formData.username)) {
+      newErrors.username = 'Solo letras, números y guiones bajos';
     }
 
     if (!formData.email.trim()) {
@@ -64,23 +69,46 @@ const RegisterForm = ({ onClose, onBackToLogin }) => {
     if (!validateForm()) return;
 
     setLoading(true);
-    const result = await register({
-      username: formData.username,
-      email: formData.email,
-      telefono: formData.telefono,
-      password: formData.password
-    });
+    
+    try {
+      const result = await register({
+        username: formData.username,
+        email: formData.email,
+        telefono: formData.telefono,
+        password: formData.password
+      });
 
-    if (result.success) {
-      toast.success('¡Registro exitoso! Ahora puedes iniciar sesión');
-      setTimeout(() => {
-        onBackToLogin();
-      }, 1500);
-    } else {
-      toast.error(result.error || 'Error al registrar usuario');
+      if (result.success) {
+        // Mostrar mensaje de éxito con el mensaje del backend
+        const message = result.data?.message || '¡Registro exitoso! Ahora puedes iniciar sesión';
+        toast.success(message);
+        
+        // Esperar un poco antes de cambiar al login
+        setTimeout(() => {
+          onBackToLogin();
+        }, 1500);
+      } else {
+        // Manejar error correctamente
+        const errorMessage = result.error?.message || 'Error al registrar usuario';
+        toast.error(errorMessage);
+        
+        // Si el error es de validación, mostrar los detalles
+        if (result.error?.details) {
+          const validationErrors = {};
+          result.error.details.forEach(detail => {
+            if (detail.path) {
+              validationErrors[detail.path] = detail.msg;
+            }
+          });
+          setErrors(validationErrors);
+        }
+      }
+    } catch (error) {
+      console.error('Error en registro:', error);
+      toast.error('Error al conectar con el servidor');
+    } finally {
+      setLoading(false);
     }
-
-    setLoading(false);
   };
 
   return (

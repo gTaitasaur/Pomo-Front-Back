@@ -1,7 +1,7 @@
 // src/services/authService.js
 import axios from 'axios';
 
-// Configuración base de axios
+// Configuración base de axios - Corregido para Vite
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
 
 // Crear instancia de axios con configuración base
@@ -46,7 +46,7 @@ api.interceptors.response.use(
     return Promise.reject({
       success: false,
       error: {
-        message: errorData.error?.message || 'Error desconocido',
+        message: errorData.error?.message || error.response.data?.message || 'Error desconocido',
         code: errorData.error?.code || 'UNKNOWN_ERROR',
         details: errorData.error?.details
       }
@@ -81,8 +81,10 @@ class AuthService {
     }
   }
 
-  // Registro
+  // Registro - CON LOGS PARA DEBUG
   static async register(userData) {
+    console.log('🚀 Iniciando registro con datos:', userData);
+    
     try {
       const response = await api.post('/auth/register', {
         username: userData.username,
@@ -91,8 +93,11 @@ class AuthService {
         telefono: userData.telefono || null
       });
 
+      console.log('✅ Registro exitoso:', response.data);
       return response.data;
     } catch (error) {
+      console.error('❌ Error en registro:', error);
+      
       // Si es un error ya formateado por el interceptor
       if (error.success === false) {
         return error;
@@ -205,6 +210,9 @@ class AuthService {
     }
   }
 }
+
+// Log para verificar que se cargó correctamente
+console.log('📡 AuthService cargado. API URL:', API_URL);
 
 // Exportar también la instancia de axios configurada para otros servicios
 export { api };
