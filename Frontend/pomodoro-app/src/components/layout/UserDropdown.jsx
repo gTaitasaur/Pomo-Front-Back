@@ -33,8 +33,8 @@ const UserDropdown = ({ greeting }) => {
         className="flex items-center space-x-2 text-gray-700 hover:text-gray-900"
       >
         {/* Imagen del usuario */}
+        <span>{greeting}, {user?.username}!</span>
         <div className="w-8 h-8 bg-gray-300 rounded-full"></div>
-        <span>{greeting} {user?.username}!</span>
       </button>
 
       {/* Menú desplegable */}

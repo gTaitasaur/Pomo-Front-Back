@@ -1,10 +1,8 @@
-// src/services/authService.js
 import axios from 'axios';
 
-// Configuración base de axios - Corregido para Vite
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
 
-// Crear instancia de axios con configuración base
+// Instancia de axios
 const api = axios.create({
   baseURL: API_URL,
   headers: {
@@ -30,7 +28,6 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    // Si el backend no responde o hay error de red
     if (!error.response) {
       return Promise.reject({
         success: false,
@@ -41,7 +38,6 @@ api.interceptors.response.use(
       });
     }
     
-    // Si el backend responde con error
     const errorData = error.response.data || {};
     return Promise.reject({
       success: false,
@@ -55,7 +51,6 @@ api.interceptors.response.use(
 );
 
 class AuthService {
-  // Login
   static async login(username, password) {
     try {
       const response = await api.post('/auth/login', {
@@ -65,12 +60,10 @@ class AuthService {
 
       return response.data;
     } catch (error) {
-      // Si es un error ya formateado por el interceptor
       if (error.success === false) {
         return error;
       }
       
-      // Error inesperado
       return {
         success: false,
         error: {
@@ -81,7 +74,6 @@ class AuthService {
     }
   }
 
-  // Registro - CORREGIDO: enviar null si teléfono está vacío
   static async register(userData) {
     console.log('🚀 Iniciando registro con datos:', userData);
     
@@ -90,7 +82,6 @@ class AuthService {
         username: userData.username,
         email: userData.email,
         password: userData.password,
-        // FIX #1: Enviar null si el teléfono está vacío
         telefono: userData.telefono && userData.telefono.trim() !== '' ? userData.telefono : null
       });
 
@@ -99,12 +90,10 @@ class AuthService {
     } catch (error) {
       console.error('❌ Error en registro:', error);
       
-      // Si es un error ya formateado por el interceptor
       if (error.success === false) {
         return error;
       }
       
-      // Error inesperado
       return {
         success: false,
         error: {
@@ -126,12 +115,10 @@ class AuthService {
 
       return response.data;
     } catch (error) {
-      // Si es un error ya formateado por el interceptor
       if (error.success === false) {
         return error;
       }
-      
-      // Error inesperado
+
       return {
         success: false,
         error: {
@@ -151,12 +138,10 @@ class AuthService {
 
       return response.data;
     } catch (error) {
-      // Si es un error ya formateado por el interceptor
       if (error.success === false) {
         return error;
       }
       
-      // Error inesperado
       return {
         success: false,
         error: {
@@ -176,7 +161,6 @@ class AuthService {
 
       return response.data;
     } catch (error) {
-      // No es crítico si falla el logout
       return {
         success: true,
         data: {
@@ -186,7 +170,7 @@ class AuthService {
     }
   }
 
-  // Cambiar contraseña - FIX #3: Usar la ruta correcta
+  // Cambiar contraseña
   static async changePassword(userId, currentPassword, newPassword) {
     try {
       const response = await api.post(`/users/${userId}/change-password`, {
@@ -196,7 +180,6 @@ class AuthService {
 
       return response.data;
     } catch (error) {
-      // Si es un error ya formateado por el interceptor
       if (error.success === false) {
         return error;
       }
@@ -212,9 +195,5 @@ class AuthService {
   }
 }
 
-// Log para verificar que se cargó correctamente
-console.log('📡 AuthService cargado. API URL:', API_URL);
-
-// Exportar también la instancia de axios configurada para otros servicios
 export { api };
 export default AuthService;

@@ -2,7 +2,6 @@ const Modal = ({ isOpen, onClose, children }) => {
     // Si el modal no está abierto, no renderiza
     if (!isOpen) return null;
   
-    // Cierra el modal cuando se hace clic en el fondo
     const handleBackdropClick = (e) => {
       if (e.target === e.currentTarget) {
         onClose();

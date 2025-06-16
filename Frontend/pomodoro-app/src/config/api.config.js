@@ -1,20 +1,16 @@
-// src/config/api.config.js
 import axios from 'axios';
 import toast from 'react-hot-toast';
 
-// URL base de la API
 export const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
 
-// Crear instancia de axios
 const apiClient = axios.create({
   baseURL: API_URL,
-  timeout: 10000, // 10 segundos
+  timeout: 10000,
   headers: {
     'Content-Type': 'application/json'
   }
 });
 
-// Variable para almacenar la función de refresh
 let isRefreshing = false;
 let failedQueue = [];
 
@@ -30,7 +26,7 @@ const processQueue = (error, token = null) => {
   failedQueue = [];
 };
 
-// Interceptor para requests - añadir token
+// Interceptor para requests
 apiClient.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('access_token');
@@ -44,16 +40,14 @@ apiClient.interceptors.request.use(
   }
 );
 
-// Interceptor para responses - manejar errores y refresh token
+// Interceptor para responses
 apiClient.interceptors.response.use(
   (response) => {
-    // Respuesta exitosa
     return response;
   },
   async (error) => {
     const originalRequest = error.config;
 
-    // Si no hay respuesta del servidor
     if (!error.response) {
       toast.error('Error de conexión con el servidor');
       return Promise.reject({
@@ -65,14 +59,12 @@ apiClient.interceptors.response.use(
       });
     }
 
-    // Si es un 401 y no es el endpoint de login/refresh
     if (error.response.status === 401 && 
         !originalRequest._retry &&
         !originalRequest.url.includes('/auth/login') &&
         !originalRequest.url.includes('/auth/refresh')) {
       
       if (isRefreshing) {
-        // Si ya estamos refrescando, añadir a la cola
         return new Promise((resolve, reject) => {
           failedQueue.push({ resolve, reject });
         }).then(token => {
@@ -130,12 +122,10 @@ apiClient.interceptors.response.use(
       }
     }
 
-    // Para otros errores, mostrar mensaje si es apropiado
     if (error.response.status >= 500) {
       toast.error('Error del servidor. Por favor, intenta más tarde.');
     }
 
-    // Retornar el error en el formato esperado
     return Promise.reject({
       success: false,
       error: error.response.data.error || {

@@ -17,7 +17,6 @@ const History = () => {
     }
   }, [user, navigate]);
 
-  // Cargar historial y lifetime
   useEffect(() => {
     if (user) {
       // Cargar historial completo
@@ -41,7 +40,6 @@ const History = () => {
         setHistory(recentHistory);
       }
       
-      // Cargar lifetime desde localStorage o usar el valor del usuario
       const savedLifetime = localStorage.getItem(`lifetime_${user.user_id}`);
       if (savedLifetime) {
         setLifetimeMinutes(parseInt(savedLifetime));

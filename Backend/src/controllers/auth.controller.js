@@ -1,4 +1,3 @@
-// src/controllers/auth.controller.js
 const UserModel = require('../models/user.model');
 const TokenModel = require('../models/token.model');
 const { query } = require('../config/db');
@@ -11,7 +10,6 @@ const {
 } = require('../utils/auth.utils');
 
 class AuthController {
-  // Registro de usuario
   static async register(req, res) {
     try {
       const { username, email, password, telefono } = req.body;
@@ -49,7 +47,7 @@ class AuthController {
         telefono
       });
 
-      // Crear transacción de bienvenida (50 monedas gratis)
+      // Crear transacción de bienvenida
       const bonusCoins = 50;
       await query(
         `INSERT INTO transactions 
@@ -81,7 +79,7 @@ class AuthController {
     }
   }
 
-  // Login de usuario
+  // Login
   static async login(req, res) {
     try {
       const { username, password } = req.body;
@@ -121,7 +119,7 @@ class AuthController {
 
       // Guardar refresh token en BD
       const expiresAt = new Date();
-      expiresAt.setDate(expiresAt.getDate() + 30); // 30 días
+      expiresAt.setDate(expiresAt.getDate() + 30);
 
       await TokenModel.create({
         token: refreshToken,
@@ -131,7 +129,6 @@ class AuthController {
         ipAddress: req.ip
       });
 
-      // Preparar respuesta (sin password_hash)
       const { password_hash, ...userWithoutPassword } = user;
 
       res.json({
@@ -141,7 +138,7 @@ class AuthController {
           access_token: accessToken,
           refresh_token: refreshToken,
           token_type: 'Bearer',
-          expires_in: 900 // 15 minutos en segundos
+          expires_in: 900
         }
       });
 
@@ -160,7 +157,6 @@ class AuthController {
   // Verificar token actual
   static async verifyToken(req, res) {
     try {
-      // El usuario ya viene del middleware authenticate
       const user = req.user;
 
       res.json({
@@ -213,7 +209,7 @@ class AuthController {
         });
       }
 
-      // Generar nuevo access token
+      // Genera nuevo access token
       const newAccessToken = generateAccessToken(tokenData.user_id);
 
       res.json({
@@ -243,7 +239,7 @@ class AuthController {
       const { refresh_token } = req.body;
 
       if (refresh_token) {
-        // Revocar el refresh token específico
+        // Revocar refresh token específico
         await TokenModel.revokeToken(refresh_token);
       }
 

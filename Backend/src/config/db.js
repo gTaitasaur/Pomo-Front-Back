@@ -1,18 +1,15 @@
-// src/config/db.js
 const { Pool } = require('pg');
 require('dotenv').config();
 
-// Configuración de la conexión a PostgreSQL
 const pool = new Pool({
   host: process.env.DB_HOST || 'localhost',
   port: process.env.DB_PORT || 5432,
   database: process.env.DB_NAME || 'pomodoro_db',
   user: process.env.DB_USER || 'postgres',
   password: process.env.DB_PASSWORD || '12345678',
-  // Configuraciones adicionales recomendadas
-  max: 20, // máximo número de clientes en el pool
-  idleTimeoutMillis: 30000, // tiempo antes de cerrar conexiones inactivas
-  connectionTimeoutMillis: 2000, // tiempo máximo para conectar
+  max: 20,
+  idleTimeoutMillis: 30000,
+  connectionTimeoutMillis: 2000,
 });
 
 // Verificar la conexión al iniciar
@@ -53,7 +50,7 @@ const query = async (text, params) => {
   }
 };
 
-// Función para obtener un cliente (para transacciones)
+// Función para obtener un cliente
 const getClient = () => {
   return pool.connect();
 };

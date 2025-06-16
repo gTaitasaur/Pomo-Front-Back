@@ -1,4 +1,3 @@
-// src/routes/user.routes.js
 const express = require('express');
 const { body } = require('express-validator');
 const UserController = require('../controllers/user.controller');
@@ -64,8 +63,6 @@ const changePasswordValidation = [
     .custom((value, { req }) => value !== req.body.current_password)
     .withMessage('La nueva contraseña debe ser diferente a la actual')
 ];
-
-// TODAS LAS RUTAS REQUIEREN AUTENTICACIÓN
 
 // Obtener perfil del usuario actual
 router.get(

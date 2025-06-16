@@ -1,26 +1,21 @@
-// src/utils/auth.utils.js
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 require('dotenv').config();
 
-// Configuración
 const JWT_SECRET = process.env.JWT_SECRET;
 const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET;
 const JWT_EXPIRE = process.env.JWT_EXPIRE || '15m';
 const JWT_REFRESH_EXPIRE = process.env.JWT_REFRESH_EXPIRE || '30d';
 const SALT_ROUNDS = 10;
 
-// Hash de contraseña
 const hashPassword = async (password) => {
   return await bcrypt.hash(password, SALT_ROUNDS);
 };
 
-// Verificar contraseña
 const verifyPassword = async (password, hash) => {
   return await bcrypt.compare(password, hash);
 };
 
-// Generar Access Token
 const generateAccessToken = (userId) => {
   const payload = {
     userId,
@@ -32,7 +27,6 @@ const generateAccessToken = (userId) => {
   });
 };
 
-// Generar Refresh Token
 const generateRefreshToken = (userId) => {
   const payload = {
     userId,
@@ -44,7 +38,6 @@ const generateRefreshToken = (userId) => {
   });
 };
 
-// Verificar Access Token
 const verifyAccessToken = (token) => {
   try {
     const decoded = jwt.verify(token, JWT_SECRET);
@@ -57,7 +50,6 @@ const verifyAccessToken = (token) => {
   }
 };
 
-// Verificar Refresh Token
 const verifyRefreshToken = (token) => {
   try {
     const decoded = jwt.verify(token, JWT_REFRESH_SECRET);
@@ -70,7 +62,6 @@ const verifyRefreshToken = (token) => {
   }
 };
 
-// Extraer token del header Authorization
 const extractTokenFromHeader = (authHeader) => {
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
     return null;

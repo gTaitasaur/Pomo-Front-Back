@@ -1,4 +1,3 @@
-// src/routes/transaction.routes.js
 const express = require('express');
 const { body, param, query } = require('express-validator');
 const TransactionController = require('../controllers/transaction.controller');
@@ -57,9 +56,7 @@ const userIdParamValidation = [
     .withMessage('ID de usuario inválido')
 ];
 
-// TODAS LAS RUTAS REQUIEREN AUTENTICACIÓN
-
-// Crear transacción de Pomodoro completado
+// Transacción de Pomodoro completado
 router.post(
   '/pomodoro',
   authenticate,
@@ -87,34 +84,31 @@ router.get(
   TransactionController.getUserTransactionStats
 );
 
-// Comprar monedas (por implementar)
-router.post(
+{/*router.post(
   '/purchase-coins',
   authenticate,
   TransactionController.purchaseCoins
 );
 
-// Comprar premium (por implementar)
 router.post(
   '/purchase-premium',
   authenticate,
   TransactionController.purchasePremium
 );
 
-// Desbloquear característica (por implementar)
 router.post(
   '/unlock-feature',
   authenticate,
   TransactionController.unlockFeature
 );
 
-// Obtener todas las transacciones (admin - por implementar)
+// Obtener todas las transacciones
 router.get(
   '/',
   authenticate,
   paginationValidation,
   handleValidationErrors,
   TransactionController.getAllTransactions
-);
+);*/}
 
 module.exports = router;

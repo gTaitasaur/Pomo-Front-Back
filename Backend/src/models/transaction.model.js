@@ -2,7 +2,6 @@
 const { query, getClient } = require('../config/db');
 
 class TransactionModel {
-  // Crear transacción (con actualización automática de monedas)
   static async create(transactionData) {
     const client = await getClient();
     
@@ -93,14 +92,12 @@ class TransactionModel {
     }
   }
 
-  // Crear transacción de Pomodoro específicamente
   static async createPomodoroTransaction(userId, freeCoins, pomodoroMinutes) {
     const client = await getClient();
     
     try {
       await client.query('BEGIN');
 
-      // Crear sesión de pomodoro
       const sessionSql = `
         INSERT INTO pomo_hist (
           user_id, duration_minutes, pomo_type, 
@@ -122,7 +119,6 @@ class TransactionModel {
 
       const sessionId = sessionResult.rows[0].session_id;
 
-      // Crear transacción
       const transactionData = {
         user_id: userId,
         transaction_type: 'earn_free_coins',
@@ -136,7 +132,6 @@ class TransactionModel {
 
       const result = await this.create(transactionData);
 
-      // Actualizar lifetime_session del usuario
       await client.query(
         `UPDATE usuarios 
          SET lifetime_session = lifetime_session + $1 
@@ -156,7 +151,6 @@ class TransactionModel {
     }
   }
 
-  // Obtener transacciones de un usuario
   static async getUserTransactions(userId, limit = 50, offset = 0) {
     const sql = `
       SELECT * FROM transactions 
@@ -169,7 +163,6 @@ class TransactionModel {
     return result.rows;
   }
 
-  // Obtener todas las transacciones
   static async getAll(limit = 50, offset = 0) {
     const sql = `
       SELECT t.*, u.username, u.email 
@@ -183,7 +176,6 @@ class TransactionModel {
     return result.rows;
   }
 
-  // Obtener transacción por ID
   static async findById(transactionId) {
     const sql = `
       SELECT * FROM transactions 
@@ -194,7 +186,6 @@ class TransactionModel {
     return result.rows[0];
   }
 
-  // Obtener estadísticas de transacciones
   static async getUserStats(userId) {
     const sql = `
       SELECT 

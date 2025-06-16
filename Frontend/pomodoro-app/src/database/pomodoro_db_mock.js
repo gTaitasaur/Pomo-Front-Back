@@ -1,4 +1,3 @@
-// Simula la base de datos PostgreSQL con datos de prueba
 // ENUMS
 const PROVIDER_ENUM = ['email', 'google', 'facebook'];
 const POMO_TYPE_ENUM = ['work', 'rest', 'long_rest'];
@@ -27,7 +26,7 @@ const mockDatabase = {
       user_id: 1,
       username: 'usuario_demo',
       email: 'demo@ejemplo.com',
-      password_hash: '$2b$10$' + btoa('demo123'), // Contraseña: demo123
+      password_hash: '$2b$10$' + btoa('demo123'),
       telefono: '+56912345678',
       imagen_perfil: 'https://example.com/avatar1.jpg',
       provider: 'email',

@@ -1,11 +1,9 @@
-// src/middleware/auth.middleware.js
 const { verifyAccessToken, extractTokenFromHeader } = require('../utils/auth.utils');
 const UserModel = require('../models/user.model');
 
 // Middleware para verificar autenticación
 const authenticate = async (req, res, next) => {
   try {
-    // Extraer token del header
     const token = extractTokenFromHeader(req.headers.authorization);
     
     if (!token) {
@@ -18,10 +16,7 @@ const authenticate = async (req, res, next) => {
       });
     }
 
-    // Verificar token
     const decoded = verifyAccessToken(token);
-    
-    // Buscar usuario
     const user = await UserModel.findById(decoded.userId);
     
     if (!user) {
@@ -34,7 +29,7 @@ const authenticate = async (req, res, next) => {
       });
     }
 
-    // Adjuntar usuario a la request (sin password_hash)
+    // Adjunta usuario a la request
     const { password_hash, ...userWithoutPassword } = user;
     req.user = userWithoutPassword;
     
@@ -52,7 +47,6 @@ const authenticate = async (req, res, next) => {
   }
 };
 
-// Middleware opcional - no bloquea si no hay token
 const optionalAuth = async (req, res, next) => {
   try {
     const token = extractTokenFromHeader(req.headers.authorization);
@@ -69,7 +63,6 @@ const optionalAuth = async (req, res, next) => {
     
     next();
   } catch (error) {
-    // Si hay error, simplemente continuar sin usuario
     next();
   }
 };

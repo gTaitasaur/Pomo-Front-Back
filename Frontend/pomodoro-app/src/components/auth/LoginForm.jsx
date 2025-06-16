@@ -77,7 +77,7 @@ const LoginForm = ({ onClose, onSwitchToRegister }) => {
         </button>
       </div>
 
-      {/* Botón demo para desarrollo */}
+      {/* Botón demo para desarrollo
       <button
         type="button"
         onClick={fillDemoUser}
@@ -85,6 +85,7 @@ const LoginForm = ({ onClose, onSwitchToRegister }) => {
       >
         Usar credenciales de demo
       </button>
+      */}
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
@@ -98,7 +99,7 @@ const LoginForm = ({ onClose, onSwitchToRegister }) => {
             value={formData.username}
             onChange={handleChange}
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder="usuario_demo o demo@ejemplo.com"
+            placeholder="Usuario"
             disabled={loading}
             autoComplete="username"
           />
@@ -115,7 +116,7 @@ const LoginForm = ({ onClose, onSwitchToRegister }) => {
             value={formData.password}
             onChange={handleChange}
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder="Ingresa tu contraseña"
+            placeholder="*********"
             disabled={loading}
             autoComplete="current-password"
           />

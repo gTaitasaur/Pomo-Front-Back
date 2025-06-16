@@ -1,8 +1,6 @@
-// src/models/user.model.js
 const { query } = require('../config/db');
 
 class UserModel {
-  // Buscar usuario por ID
   static async findById(userId) {
     const sql = `
       SELECT user_id, username, email, telefono, imagen_perfil, 
@@ -16,7 +14,6 @@ class UserModel {
     return result.rows[0];
   }
 
-  // Buscar usuario por email
   static async findByEmail(email) {
     const sql = `
       SELECT * FROM usuarios 
@@ -26,7 +23,6 @@ class UserModel {
     return result.rows[0];
   }
 
-  // En user.model.js
   static async findByIdWithPassword(userId) {
     const result = await query(
       'SELECT user_id, username, email, password_hash, telefono, imagen_perfil FROM usuarios WHERE user_id = $1', 
@@ -35,7 +31,6 @@ class UserModel {
     return result.rows[0];
   }
 
-  // Buscar usuario por username
   static async findByUsername(username) {
     const sql = `
       SELECT * FROM usuarios 
@@ -45,7 +40,6 @@ class UserModel {
     return result.rows[0];
   }
 
-  // Buscar por username o email (para login)
   static async findByUsernameOrEmail(identifier) {
     const sql = `
       SELECT * FROM usuarios 
@@ -56,7 +50,6 @@ class UserModel {
     return result.rows[0];
   }
 
-  // Crear nuevo usuario
   static async create(userData) {
     const {
       username,
@@ -91,7 +84,6 @@ class UserModel {
     return result.rows[0];
   }
 
-  // Actualizar último login
   static async updateLastLogin(userId) {
     const sql = `
       UPDATE usuarios 
@@ -103,7 +95,6 @@ class UserModel {
     return result.rows[0];
   }
 
-  // Actualizar monedas del usuario
   static async updateCoins(userId, freeCoins = null, paidCoins = null) {
     let sql = 'UPDATE usuarios SET ';
     const values = [];
@@ -129,7 +120,6 @@ class UserModel {
     return result.rows[0];
   }
 
-  // Actualizar información del usuario
   static async update(userId, updates) {
     const allowedUpdates = [
       'username', 'email', 'telefono', 'imagen_perfil',
@@ -140,7 +130,6 @@ class UserModel {
     const values = [];
     let paramCount = 1;
 
-    // Construir query dinámicamente
     Object.keys(updates).forEach(key => {
       if (allowedUpdates.includes(key) && updates[key] !== undefined) {
         updateFields.push(`${key} = $${paramCount}`);
@@ -167,14 +156,12 @@ class UserModel {
     return result.rows[0];
   }
 
-  // Verificar si existe usuario con email
   static async emailExists(email) {
     const sql = 'SELECT 1 FROM usuarios WHERE LOWER(email) = LOWER($1)';
     const result = await query(sql, [email]);
     return result.rows.length > 0;
   }
 
-  // Verificar si existe usuario con username
   static async usernameExists(username) {
     const sql = 'SELECT 1 FROM usuarios WHERE LOWER(username) = LOWER($1)';
     const result = await query(sql, [username]);

@@ -1,8 +1,6 @@
-// src/models/token.model.js
 const { query } = require('../config/db');
 
 class TokenModel {
-  // Crear refresh token
   static async create(tokenData) {
     const {
       token,
@@ -23,7 +21,6 @@ class TokenModel {
     return result.rows[0];
   }
 
-  // Buscar token válido
   static async findValidToken(token) {
     const sql = `
       SELECT rt.*, u.username, u.email, u.is_active
@@ -39,7 +36,6 @@ class TokenModel {
     return result.rows[0];
   }
 
-  // Revocar token
   static async revokeToken(token) {
     const sql = `
       UPDATE refresh_tokens 
@@ -52,7 +48,6 @@ class TokenModel {
     return result.rows[0];
   }
 
-  // Revocar todos los tokens de un usuario
   static async revokeAllUserTokens(userId) {
     const sql = `
       UPDATE refresh_tokens 
@@ -65,7 +60,6 @@ class TokenModel {
     return result.rows;
   }
 
-  // Limpiar tokens expirados (para mantenimiento)
   static async cleanExpiredTokens() {
     const sql = `
       DELETE FROM refresh_tokens 
@@ -78,7 +72,6 @@ class TokenModel {
     return result.rows.length;
   }
 
-  // Contar tokens activos de un usuario
   static async countActiveTokens(userId) {
     const sql = `
       SELECT COUNT(*) as count

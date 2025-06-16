@@ -1,9 +1,7 @@
-// src/controllers/transaction.controller.js
 const TransactionModel = require('../models/transaction.model');
 const UserModel = require('../models/user.model');
 
 class TransactionController {
-  // Crear transacción de Pomodoro completado
   static async createPomodoroTransaction(req, res) {
     try {
       const { user_id, amount_free_coins, pomodoro_minutes } = req.body;
@@ -19,7 +17,6 @@ class TransactionController {
         });
       }
 
-      // Crear transacción y actualizar balance
       const result = await TransactionModel.createPomodoroTransaction(
         user_id,
         amount_free_coins,
@@ -46,13 +43,11 @@ class TransactionController {
     }
   }
 
-  // Obtener transacciones del usuario
   static async getUserTransactions(req, res) {
     try {
       const userId = parseInt(req.params.userId);
       const { limit = 50, offset = 0 } = req.query;
 
-      // Verificar permisos
       if (userId !== req.user.user_id) {
         return res.status(403).json({
           success: false,
@@ -86,7 +81,6 @@ class TransactionController {
     }
   }
 
-  // Obtener todas las transacciones (admin - para implementar después)
   static async getAllTransactions(req, res) {
     try {
       const { limit = 50, offset = 0 } = req.query;
@@ -115,7 +109,7 @@ class TransactionController {
     }
   }
 
-  // Comprar monedas (para implementar después con pasarela de pago)
+  // Comprar monedas (No implementado)
   static async purchaseCoins(req, res) {
     try {
       const { user_id, package_id, payment_data } = req.body;
@@ -131,8 +125,6 @@ class TransactionController {
         });
       }
 
-      // TODO: Implementar lógica de pago
-      // Por ahora solo retornamos un mensaje
       res.status(501).json({
         success: false,
         error: {
@@ -152,8 +144,7 @@ class TransactionController {
       });
     }
   }
-
-  // Comprar premium con monedas
+  //Comprar premium (No implementado)
   static async purchasePremium(req, res) {
     try {
       const { user_id, package_id, use_coins = true } = req.body;
@@ -169,7 +160,6 @@ class TransactionController {
         });
       }
 
-      // TODO: Implementar lógica de compra premium
       res.status(501).json({
         success: false,
         error: {
@@ -189,8 +179,7 @@ class TransactionController {
       });
     }
   }
-
-  // Desbloquear característica
+  //Desbloquear Feature (No implementado)
   static async unlockFeature(req, res) {
     try {
       const { user_id, feature_id } = req.body;
@@ -227,12 +216,10 @@ class TransactionController {
     }
   }
 
-  // Obtener estadísticas de transacciones del usuario
   static async getUserTransactionStats(req, res) {
     try {
       const userId = parseInt(req.params.userId);
 
-      // Verificar permisos
       if (userId !== req.user.user_id) {
         return res.status(403).json({
           success: false,

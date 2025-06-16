@@ -13,7 +13,6 @@ const ProtectedRoute = ({ children }) => {
   }
 
   if (!user) {
-    // Redirigir al home si no hay usuario
     return <Navigate to="/" replace />;
   }
 

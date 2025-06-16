@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useSound } from '../../hooks/useSound';
 import TransactionService from '../../services/transactionService';
-import { MockDatabase } from '../../database/pomodoro_db_mock';
+//import { MockDatabase } from '../../database/pomodoro_db_mock';
 import toast from 'react-hot-toast';
 
 // Modos del Timer
@@ -40,7 +40,7 @@ const PomodoroTimer = () => {
   const [mode, setMode] = useState(TIMER_MODES.POMODORO);
   const [timeLeft, setTimeLeft] = useState(customTimes[TIMER_MODES.POMODORO] * 60);
   const [isRunning, setIsRunning] = useState(false);
-  const [pomodoroCount, setPomodoroCount] = useState(0); // Comienza en 0/4
+  const [pomodoroCount, setPomodoroCount] = useState(0);
   const [cycleCount, setCycleCount] = useState(0);
   const [showSettings, setShowSettings] = useState(false);
   
@@ -72,7 +72,7 @@ const PomodoroTimer = () => {
       const state = JSON.parse(savedState);
       setMode(state.mode);
       setTimeLeft(state.timeLeft);
-      setPomodoroCount(state.pomodoroCount || 0); // Iniciar en 0 si no existe
+      setPomodoroCount(state.pomodoroCount || 0);
       setCycleCount(state.cycleCount || 0);
       if (state.customTimes) {
         setCustomTimes(state.customTimes);
@@ -106,10 +106,8 @@ const PomodoroTimer = () => {
     if (mode === TIMER_MODES.POMODORO) {
       playPomodoroComplete();
       const newCount = pomodoroCount + 1;
-      // Calcular y agregar Freemodoros
       const freemodoresToAdd = customTimes[TIMER_MODES.POMODORO];
       if (user) {
-        // Crear transacción en la base de datos
         const transactionResult = await TransactionService.createPomodoroTransaction(
           user.user_id,
           freemodoresToAdd,
@@ -117,13 +115,11 @@ const PomodoroTimer = () => {
         );
         
         if (transactionResult.success) {
-          // Actualizar el context con el nuevo balance
           updateUserCoins(
             transactionResult.data.newBalance.free_coins,
             transactionResult.data.newBalance.paid_coins
           );
           
-          // Notificación a usuario
           toast.success(`¡+${freemodoresToAdd} Freemodoros ganados! 🪙`, {
             duration: 4000,
             icon: '💰',
@@ -144,7 +140,7 @@ const PomodoroTimer = () => {
         });
         localStorage.setItem(`pomodoroHistory_${user.user_id}`, JSON.stringify(history));
         
-        // Actualizar lifetime_session
+        {/*// Actualizar lifetime_session
         try {
           await MockDatabase.updateLifetimeSession(user.user_id, customTimes[TIMER_MODES.POMODORO]);
           const currentLifetime = user.lifetime_session || 0;
@@ -152,7 +148,7 @@ const PomodoroTimer = () => {
           localStorage.setItem(`lifetime_${user.user_id}`, newLifetime.toString());
         } catch (error) {
           console.error('Error actualizando lifetime_session:', error);
-        }
+        }*/}
       }
       
       // Verificar ciclo completo (después de 4 pomodoros)
@@ -193,7 +189,7 @@ const PomodoroTimer = () => {
       setTimeLeft(customTimes[TIMER_MODES.POMODORO] * 60);
       showNotification('¡Descanso terminado!', 'Tiempo de volver al trabajo');
       toast('¡A trabajar! 💪', { icon: '🍅' });
-    } else { // LONG_BREAK
+    } else {
       playLongBreakComplete();
       
       // Guardar descanso largo en historial
@@ -220,7 +216,7 @@ const PomodoroTimer = () => {
     setIsRunning(true);
   }, [mode, pomodoroCount, cycleCount, customTimes, playPomodoroComplete, playShortBreakComplete, playLongBreakComplete, showNotification, user, updateUserCoins]);
 
-  // Timer principal - CORECCIÓN CLAVE
+  // Timer principal
   useEffect(() => {
     if (isRunning) {
       if (timeLeft === 0) {
@@ -255,7 +251,6 @@ const PomodoroTimer = () => {
 
   const skipTimer = () => {
     playClickSound();
-    // Al saltar, cambiar de modo sin dar recompensas
     if (mode === TIMER_MODES.POMODORO) {
       const newCount = pomodoroCount + 1;
       
@@ -270,7 +265,6 @@ const PomodoroTimer = () => {
         setTimeLeft(customTimes[TIMER_MODES.SHORT_BREAK] * 60);
       }
     } else {
-      // Después de un descanso, volver a pomodoro
       setMode(TIMER_MODES.POMODORO);
       setTimeLeft(customTimes[TIMER_MODES.POMODORO] * 60);
     }
@@ -307,7 +301,7 @@ const PomodoroTimer = () => {
 
   // Calcular progreso para el círculo
   const progress = (timeLeft / (customTimes[mode] * 60)) * 100;
-  const circumference = 2 * Math.PI * 120; // Radio de 120
+  const circumference = 2 * Math.PI * 120;
   const strokeDasharray = `${(progress / 100) * circumference} ${circumference}`;
 
   return (

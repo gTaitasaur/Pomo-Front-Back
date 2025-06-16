@@ -1,4 +1,3 @@
-// src/routes/auth.routes.js
 const express = require('express');
 const { body, validationResult } = require('express-validator');
 const AuthController = require('../controllers/auth.controller');
@@ -68,8 +67,6 @@ const refreshTokenValidation = [
     .withMessage('Refresh token requerido')
 ];
 
-// RUTAS PÚBLICAS
-
 // Registro
 router.post(
   '/register',
@@ -93,8 +90,6 @@ router.post(
   handleValidationErrors,
   AuthController.refreshToken
 );
-
-// RUTAS PROTEGIDAS (requieren autenticación)
 
 // Verificar token actual
 router.get(

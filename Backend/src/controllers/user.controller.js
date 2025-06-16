@@ -1,4 +1,3 @@
-// src/controllers/user.controller.js
 const UserModel = require('../models/user.model');
 const TransactionModel = require('../models/transaction.model');
 const { query } = require('../config/db');
@@ -47,7 +46,6 @@ class UserController {
       const userId = req.user.user_id;
       const { username, email, telefono, imagen_perfil } = req.body;
 
-      // Verificar si el nuevo email ya existe (si se está cambiando)
       if (email && email !== req.user.email) {
         const existingUser = await UserModel.findByEmail(email);
         if (existingUser && existingUser.user_id !== userId) {
@@ -61,7 +59,6 @@ class UserController {
         }
       }
 
-      // Verificar si el nuevo username ya existe (si se está cambiando)
       if (username && username !== req.user.username) {
         const existingUser = await UserModel.findByUsername(username);
         if (existingUser && existingUser.user_id !== userId) {
@@ -75,7 +72,6 @@ class UserController {
         }
       }
 
-      // Actualizar usuario
       const updatedUser = await UserModel.update(userId, {
         username,
         email,
@@ -108,10 +104,9 @@ class UserController {
   // Cambiar contraseña
   static async changePassword(req, res) {
     try {
-      const userId = req.user.user_id; // Usa solo el ID del token
+      const userId = req.user.user_id;
       const { current_password, new_password } = req.body;
   
-      // Validar campos requeridos
       if (!current_password || !new_password) {
         return res.status(400).json({
           success: false,
@@ -122,8 +117,8 @@ class UserController {
         });
       }
   
-      // Obtener usuario CON el password_hash
-      const user = await UserModel.findByIdWithPassword(userId); // ¡Nuevo método!
+      // Obtener usuario con el password_hash
+      const user = await UserModel.findByIdWithPassword(userId);
   
       if (!user || !user.password_hash) {
         return res.status(404).json({
@@ -285,13 +280,11 @@ class UserController {
         dailyStats[dateKey] = 0;
       }
 
-      // Llenar con datos reales
       dailyResult.rows.forEach(row => {
         const dateKey = row.date.toISOString().split('T')[0];
         dailyStats[dateKey] = parseInt(row.sessions_count);
       });
 
-      // Calcular tasa de completado
       const completionRate = sessionStats.total_sessions > 0 
         ? ((parseInt(sessionStats.completed_sessions) / parseInt(sessionStats.total_sessions)) * 100).toFixed(2)
         : 0;

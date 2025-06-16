@@ -1,4 +1,3 @@
-// src/components/auth/RegisterForm.jsx
 import { useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import toast from 'react-hot-toast';
@@ -79,20 +78,16 @@ const RegisterForm = ({ onClose, onBackToLogin }) => {
       });
 
       if (result.success) {
-        // Mostrar mensaje de éxito con el mensaje del backend
         const message = result.data?.message || '¡Registro exitoso! Ahora puedes iniciar sesión';
         toast.success(message);
         
-        // Esperar un poco antes de cambiar al login
         setTimeout(() => {
           onBackToLogin();
         }, 1500);
       } else {
-        // Manejar error correctamente
         const errorMessage = result.error?.message || 'Error al registrar usuario';
         toast.error(errorMessage);
         
-        // Si el error es de validación, mostrar los detalles
         if (result.error?.details) {
           const validationErrors = {};
           result.error.details.forEach(detail => {
@@ -127,6 +122,7 @@ const RegisterForm = ({ onClose, onBackToLogin }) => {
 
       <form onSubmit={handleSubmit} className="space-y-4">
         {/* Campo Nombre de Usuario */}
+        <span>Todos los campos son obligatorios</span>
         <div>
           <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-1">
             Nombre de usuario <span className="text-red-500">*</span>

@@ -1,24 +1,22 @@
-// src/app.js
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
 require('dotenv').config();
 
-// Crear aplicación Express
 const app = express();
 
 // Middlewares globales
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:5173', // URL de tu frontend Vite
-  credentials: true, // Permitir cookies/credenciales
+  origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+  credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
-app.use(express.json()); // Para parsear JSON
-app.use(express.urlencoded({ extended: true })); // Para parsear formularios
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
-// Middleware para logs de peticiones (útil para desarrollo)
+// Middleware para logs
 app.use((req, res, next) => {
   console.log(`📨 ${req.method} ${req.path} - ${new Date().toISOString()}`);
   next();
@@ -50,15 +48,11 @@ app.get('/health', async (req, res) => {
 const authRoutes = require('./routes/auth.routes');
 const userRoutes = require('./routes/user.routes');
 const transactionRoutes = require('./routes/transaction.routes');
-// const pomodoroRoutes = require('./routes/pomodoro.routes');
-// const featureRoutes = require('./routes/feature.routes');
 
 // Usar las rutas
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/transactions', transactionRoutes);
-// app.use('/api/pomodoros', pomodoroRoutes);
-// app.use('/api/features', featureRoutes);
 
 // Manejo de rutas no encontradas
 app.use((req, res) => {
@@ -73,7 +67,6 @@ app.use((req, res) => {
 app.use((err, req, res, next) => {
   console.error('❌ Error:', err);
   
-  // Si es un error de validación
   if (err.name === 'ValidationError') {
     return res.status(400).json({
       error: 'Error de validación',
@@ -82,7 +75,6 @@ app.use((err, req, res, next) => {
     });
   }
   
-  // Si es un error de JWT
   if (err.name === 'JsonWebTokenError') {
     return res.status(401).json({
       error: 'Token inválido',
@@ -91,7 +83,6 @@ app.use((err, req, res, next) => {
     });
   }
   
-  // Error genérico
   res.status(err.status || 500).json({
     error: err.message || 'Error interno del servidor',
     timestamp: new Date().toISOString(),
