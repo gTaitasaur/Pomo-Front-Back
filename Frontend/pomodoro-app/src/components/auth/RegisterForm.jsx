@@ -77,7 +77,8 @@ const RegisterForm = ({ onClose, onBackToLogin }) => {
         onBackToLogin();
       }, 1500);
     } else {
-      toast.error(result.error || 'Error al registrar usuario');
+      const errorMessage = result.error?.message || 'Error al registrar usuario';
+      toast.error(errorMessage);
     }
 
     setLoading(false);

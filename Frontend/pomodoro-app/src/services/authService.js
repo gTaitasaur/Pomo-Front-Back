@@ -102,7 +102,7 @@ class AuthService {
       return {
         success: false,
         error: {
-          message: 'Error al registrar usuario',
+          message: error.response?.data?.error?.message || 'Error al registrar usuario',
           code: 'REGISTER_ERROR'
         }
       };
